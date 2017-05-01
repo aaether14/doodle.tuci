@@ -1,5 +1,5 @@
 CC			= g++
-CFLAGS		= -c -Wall -std=c++14
+CFLAGS		= -c -g -Wall -std=c++14
 LDFLAGS		= -lpthread -luuid
 SOURCES		= server.cpp thread/thread.cpp tcp/tcpserver.cpp tcp/tcpstream.cpp
 OBJECTS		= $(SOURCES:.cpp=.o)

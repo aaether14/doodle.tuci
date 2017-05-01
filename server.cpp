@@ -74,13 +74,24 @@ public:
                 {
                         const auto connection_id = m_queue.Pop();
                         m_lock.ReadLock();
-                        std::cerr << connection_id << "\n";
                         auto& connection = m_conntection_table.at(connection_id);
                         m_lock.ReadUnlock();
                         char input[256];
                         std::size_t input_length;
                         while ((input_length = connection->receive(input, sizeof(input) - 1)) > 0)
-                                connection->send(input, input_length);
+                        {
+                                m_lock.ReadLock();
+                                for (auto& it : m_conntection_table)
+                                {
+                                        if (it.first == connection_id) continue;
+                                        auto& current_connection = it.second;
+                                        current_connection->send(input, input_length);
+                                }
+                                m_lock.ReadUnlock();
+                        }
+                        m_lock.WriteLock();
+                        m_conntection_table.erase(connection_id);
+                        m_lock.WriteUnlock();
                         
                 }
                 return nullptr;
@@ -91,7 +102,7 @@ int main(int argc, char **argv)
 {
 
         int number_of_workers = 3;
-        int server_port = 4001;
+        int server_port = 4002;
         std::string server_ip = "127.0.0.1";
 
         RWLock m_rwlock;
@@ -128,11 +139,12 @@ int main(int argc, char **argv)
         {
                 try
                 {
-                        UUID new_uuid; 
+                        UUID connection_id;
+                        auto new_connection = m_server.Accept();
                         m_rwlock.WriteLock();
-                        m_connection_table.emplace(new_uuid, m_server.Accept());
+                        m_connection_table.emplace(connection_id, std::move(new_connection));
                         m_rwlock.WriteUnlock();
-                        m_connection_queue.Push(new_uuid);
+                        m_connection_queue.Push(connection_id);
                 }
                 catch (const std::exception& ex)
                 {
