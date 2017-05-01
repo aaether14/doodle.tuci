@@ -7,6 +7,10 @@ class SPMCQueue
         std::queue<T>   m_queue;
         pthread_mutex_t m_mutex;
         pthread_cond_t  m_condition_variable;
+        SPMCQueue(const SPMCQueue& other) = delete;
+        SPMCQueue& operator=(const SPMCQueue& other) = delete;
+        SPMCQueue(SPMCQueue&& other) = delete;
+        SPMCQueue& operator=(SPMCQueue&& other) = delete;
 public:
         SPMCQueue()
         {
@@ -18,17 +22,11 @@ public:
                 pthread_mutex_destroy(&m_mutex);
                 pthread_cond_destroy(&m_condition_variable);
         }
-        void Push(T&& item)
+        template <typename Item>
+        void Push(Item&& item)
         {
                 pthread_mutex_lock(&m_mutex);
-                m_queue.push(std::move(item));
-                pthread_cond_signal(&m_condition_variable);
-                pthread_mutex_unlock(&m_mutex);
-        }
-        void Push(const T& item)
-        {
-                pthread_mutex_lock(&m_mutex);
-                m_queue.push(item);
+                m_queue.push(std::forward<Item>(item));
                 pthread_cond_signal(&m_condition_variable);
                 pthread_mutex_unlock(&m_mutex);
         }
@@ -37,7 +35,7 @@ public:
                 pthread_mutex_lock(&m_mutex);
                 while (m_queue.empty())
                         pthread_cond_wait(&m_condition_variable, &m_mutex);
-                T item = std::move(m_queue.front());
+                auto item = std::move(m_queue.front());
                 m_queue.pop();
                 pthread_mutex_unlock(&m_mutex);
                 return item;

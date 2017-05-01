@@ -1,8 +1,7 @@
 CC			= g++
 CFLAGS		= -c -Wall -std=c++14
 LDFLAGS		= -lpthread
-SOURCES		= server.cpp ../threads/thread.cpp ../tcpsockets/tcpacceptor.cpp ../tcpsockets/tcpstream.cpp
-INCLUDES	= -I../threads -I../wqueue -I../tcpsockets
+SOURCES		= server.cpp thread/thread.cpp tcp/tcpacceptor.cpp tcp/tcpstream.cpp
 OBJECTS		= $(SOURCES:.cpp=.o)
 TARGET		= server
 
@@ -12,7 +11,7 @@ $(TARGET): $(OBJECTS)
 	$(CC)  $(OBJECTS) -o $@ $(LDFLAGS)
 
 .cpp.o:
-	$(CC) $(CFLAGS) $(INCLUDES) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -rf $(OBJECTS) $(TARGET)

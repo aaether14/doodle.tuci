@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
-#include "thread.h"
-#include "wqueue.h"
-#include "tcpacceptor.h"
+#include "thread/thread.h"
+#include "work_queue/work_queue.h"
+#include "tcp/tcpacceptor.h"
 
 
 class ConnectionHandler : public Thread
@@ -10,7 +10,7 @@ class ConnectionHandler : public Thread
         SPMCQueue<TCPStream>& m_queue;
 public:
         ConnectionHandler(SPMCQueue<TCPStream>& queue) : m_queue(queue) {}
-        void* run()
+        void* Run()
         {
                 while (true)
                 {
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
                         std::cerr << "Could not create connection handler!\n";
                         return 1;
                 }
-                handler->start();
+                handler->Start();
         }
 
 

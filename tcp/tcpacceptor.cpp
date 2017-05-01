@@ -1,6 +1,9 @@
-#include <string.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <stdexcept>
 #include "tcpacceptor.h"
+
 
 TCPServer::TCPServer(int port, const std::string &address) : m_socket_descriptor(0),
                                                              m_port(port),

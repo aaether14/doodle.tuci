@@ -1,7 +1,4 @@
 #pragma once
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <string>
 class TCPStream
 {
@@ -11,8 +8,8 @@ class TCPStream
       public:
         friend class TCPServer;
         ~TCPStream();
-        ssize_t send(const char *buffer, size_t length);
-        ssize_t receive(char *buffer, size_t length, int timeout = 0);
+        ssize_t send(const char *buffer, std::size_t length);
+        ssize_t receive(char *buffer, std::size_t length, int timeout = 0);
         inline int GetPort() const { return m_port; }
         inline const std::string& GetIp() const { return m_ip; }
         enum
