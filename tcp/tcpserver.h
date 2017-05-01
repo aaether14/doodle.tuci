@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 #include "tcpstream.h"
 class TCPServer
 {
@@ -10,7 +11,7 @@ class TCPServer
 public:
         TCPServer(int port, const std::string& address = "");
         ~TCPServer();
-        TCPStream Accept();
+        std::unique_ptr<TCPStream> Accept();
         void Start();
 private:
         TCPServer() = delete;

@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <cstring>
 #include <stdexcept>
-#include "tcpacceptor.h"
+#include "tcpserver.h"
 
 
 TCPServer::TCPServer(int port, const std::string &address) : m_socket_descriptor(0),
@@ -45,7 +45,7 @@ void TCPServer::Start()
         m_listening = true;
 }
 
-TCPStream TCPServer::Accept()
+std::unique_ptr<TCPStream> TCPServer::Accept()
 {
         if (!m_listening) throw std::runtime_error("Server is not listening!\n");
 
@@ -55,5 +55,5 @@ TCPStream TCPServer::Accept()
         int incoming_socket_descriptor = ::accept(m_socket_descriptor, (struct sockaddr*)&address, &length);
         if (incoming_socket_descriptor == -1)
                 throw std::runtime_error("accept() failed!\n");
-        return TCPStream(incoming_socket_descriptor, &address);
+        return std::make_unique<TCPStream>(TCPStream(incoming_socket_descriptor, &address));
 }

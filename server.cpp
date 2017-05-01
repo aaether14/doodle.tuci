@@ -1,24 +1,87 @@
 #include <iostream>
-#include <string>
+#include <map>
+#include <uuid/uuid.h>
+#include "tcp/tcpserver.h"
 #include "thread/thread.h"
-#include "work_queue/work_queue.h"
-#include "tcp/tcpacceptor.h"
+#include "containers/spmcqueue.h"
+#include "containers/rwlock.h"
+
+
+class UUID
+{
+        uuid_t m_uuid;
+public:
+        ~UUID() = default;
+        UUID()
+        {
+                uuid_generate(m_uuid);
+        }
+        UUID(const UUID& other) 
+        { 
+                uuid_copy(m_uuid, other.m_uuid); 
+        }
+        UUID& operator=(const UUID& other)
+        {
+                if (this != &other)
+                        uuid_copy(m_uuid, other.m_uuid); 
+                return *this;
+        }
+        UUID(UUID&& other)
+        {
+              uuid_copy(m_uuid, other.m_uuid);   
+        }
+        UUID& operator=(UUID&& other)
+        {
+                uuid_copy(m_uuid, other.m_uuid); 
+                return *this;
+        }
+        bool operator<(const UUID &other) const
+        { 
+                return uuid_compare(m_uuid, other.m_uuid) < 0; 
+        }
+        bool operator==(const UUID &other) const
+        { 
+                return uuid_compare(m_uuid, other.m_uuid) == 0; 
+        }
+        friend std::ostream& operator<<(std::ostream& out, const UUID& other)
+        {
+                for (auto it = 0; it < 16; ++it) out << int(other.m_uuid[it]) << " ";
+                return out;
+        }
+};
+
 
 
 class ConnectionHandler : public Thread
 {
-        SPMCQueue<TCPStream>& m_queue;
+        RWLock& m_lock;
+        SPMCQueue<UUID>& m_queue;
+        std::map<UUID, std::unique_ptr<TCPStream>>& m_conntection_table;
 public:
-        ConnectionHandler(SPMCQueue<TCPStream>& queue) : m_queue(queue) {}
+        ConnectionHandler(RWLock& lock,
+                SPMCQueue<UUID>& queue, 
+                std::map<UUID, std::unique_ptr<TCPStream>>& table) : 
+                m_lock(lock), 
+                m_queue(queue),
+                m_conntection_table(table)
+                {
+
+                }
         void* Run()
         {
+                
                 while (true)
                 {
-                        auto stream = m_queue.Pop();
+                        const auto connection_id = m_queue.Pop();
+                        m_lock.ReadLock();
+                        std::cerr << connection_id << "\n";
+                        auto& connection = m_conntection_table.at(connection_id);
+                        m_lock.ReadUnlock();
                         char input[256];
                         std::size_t input_length;
-                        while ((input_length = stream.receive(input, sizeof(input) - 1)) > 0)
-                                stream.send(input, input_length);
+                        while ((input_length = connection->receive(input, sizeof(input) - 1)) > 0)
+                                connection->send(input, input_length);
+                        
                 }
                 return nullptr;
         }
@@ -27,25 +90,31 @@ public:
 int main(int argc, char **argv)
 {
 
-        int workers = 3;
-        int port = 4001;
-        std::string ip = "127.0.0.1";
+        int number_of_workers = 3;
+        int server_port = 4001;
+        std::string server_ip = "127.0.0.1";
 
+        RWLock m_rwlock;
+        SPMCQueue<UUID> m_connection_queue;
+        std::map<UUID, std::unique_ptr<TCPStream>> m_connection_table;
+        std::unique_ptr<Thread> workers[number_of_workers];
 
-        SPMCQueue<TCPStream> m_queue;
-        for (int it = 0; it < workers; ++it)
+        try
         {
-                ConnectionHandler* handler = new ConnectionHandler(m_queue);
-                if (!handler)
+                for (int it = 0; it < number_of_workers; ++it)
                 {
-                        std::cerr << "Could not create connection handler!\n";
-                        return 1;
+                        workers[it] = std::make_unique<ConnectionHandler>(m_rwlock, m_connection_queue, m_connection_table);
+                        workers[it]->Start();
                 }
-                handler->Start();
+        }
+        catch(const std::exception& ex)
+        {
+                std::cerr << ex.what();
+                return 1;
         }
 
 
-        TCPServer m_server(port, ip);
+        TCPServer m_server(server_port, server_ip);
         try 
         {
                 m_server.Start();
@@ -59,8 +128,11 @@ int main(int argc, char **argv)
         {
                 try
                 {
-                        auto connection = std::move(m_server.Accept());
-                        m_queue.Push(std::move(connection));
+                        UUID new_uuid; 
+                        m_rwlock.WriteLock();
+                        m_connection_table.emplace(new_uuid, m_server.Accept());
+                        m_rwlock.WriteUnlock();
+                        m_connection_queue.Push(new_uuid);
                 }
                 catch (const std::exception& ex)
                 {
