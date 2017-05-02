@@ -8,8 +8,8 @@ class TCPStream
       public:
         friend class TCPServer;
         ~TCPStream();
-        ssize_t send(const char *buffer, std::size_t length);
-        ssize_t receive(char *buffer, std::size_t length, int timeout = 0);
+        ssize_t Send(const char *buffer, std::size_t length);
+        ssize_t Receive(char *buffer, std::size_t length, int timeout = 0);
         inline int GetPort() const { return m_port; }
         inline const std::string& GetIp() const { return m_ip; }
         enum

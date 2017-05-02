@@ -16,12 +16,12 @@ TCPStream::~TCPStream()
                 close(m_socket_descriptor);
 }
 
-ssize_t TCPStream::send(const char *buffer, std::size_t length)
+ssize_t TCPStream::Send(const char *buffer, std::size_t length)
 {
         return write(m_socket_descriptor, buffer, length);
 }
 
-ssize_t TCPStream::receive(char *buffer, std::size_t length, int timeout)
+ssize_t TCPStream::Receive(char *buffer, std::size_t length, int timeout)
 {
         if (timeout <= 0)
                 return read(m_socket_descriptor, buffer, length);

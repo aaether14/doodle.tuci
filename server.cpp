@@ -1,55 +1,10 @@
 #include <iostream>
 #include <map>
-#include <uuid/uuid.h>
 #include "tcp/tcpserver.h"
 #include "thread/thread.h"
 #include "containers/spmcqueue.h"
 #include "containers/rwlock.h"
-
-
-class UUID
-{
-        uuid_t m_uuid;
-public:
-        ~UUID() = default;
-        UUID()
-        {
-                uuid_generate(m_uuid);
-        }
-        UUID(const UUID& other) 
-        { 
-                uuid_copy(m_uuid, other.m_uuid); 
-        }
-        UUID& operator=(const UUID& other)
-        {
-                if (this != &other)
-                        uuid_copy(m_uuid, other.m_uuid); 
-                return *this;
-        }
-        UUID(UUID&& other)
-        {
-              uuid_copy(m_uuid, other.m_uuid);   
-        }
-        UUID& operator=(UUID&& other)
-        {
-                uuid_copy(m_uuid, other.m_uuid); 
-                return *this;
-        }
-        bool operator<(const UUID &other) const
-        { 
-                return uuid_compare(m_uuid, other.m_uuid) < 0; 
-        }
-        bool operator==(const UUID &other) const
-        { 
-                return uuid_compare(m_uuid, other.m_uuid) == 0; 
-        }
-        friend std::ostream& operator<<(std::ostream& out, const UUID& other)
-        {
-                for (auto it = 0; it < 16; ++it) out << int(other.m_uuid[it]) << " ";
-                return out;
-        }
-};
-
+#include "containers/uuid_helper.h"
 
 
 class ConnectionHandler : public Thread
@@ -78,14 +33,15 @@ public:
                         m_lock.ReadUnlock();
                         char input[256];
                         std::size_t input_length;
-                        while ((input_length = connection->receive(input, sizeof(input) - 1)) > 0)
+                        while ((input_length = connection->Receive(input, sizeof(input) - 1)) > 0)
                         {
+                                std::cerr << input << "\n";
                                 m_lock.ReadLock();
                                 for (auto& it : m_conntection_table)
                                 {
                                         if (it.first == connection_id) continue;
                                         auto& current_connection = it.second;
-                                        current_connection->send(input, input_length);
+                                        current_connection->Send(input, input_length);
                                 }
                                 m_lock.ReadUnlock();
                         }
@@ -102,8 +58,8 @@ int main(int argc, char **argv)
 {
 
         int number_of_workers = 3;
-        int server_port = 4002;
-        std::string server_ip = "127.0.0.1";
+        int server_port = 4000;
+        std::string server_ip = "192.168.1.20";
 
         RWLock m_rwlock;
         SPMCQueue<UUID> m_connection_queue;
