@@ -17,8 +17,9 @@ void State::RemoveConnection(const UUID& uuid)
 TCPStream* State::GetConnection(const UUID& uuid)
 {
         m_rw_lock.ReadLock();
-        return m_connection_table.at(uuid).get();
+        auto result = m_connection_table.at(uuid).get();
         m_rw_lock.ReadUnlock();
+        return result;
 }
 
 std::unique_ptr<std::vector<std::pair<UUID, TCPStream*>>> State::GetAllConnections()
