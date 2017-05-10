@@ -1,5 +1,7 @@
+#include "logger/log.h"
 #include "tcp/tcpserver.h"
 #include "connection/connection_handler.h"
+
 
 
 int main(int argc, char **argv)
@@ -14,15 +16,14 @@ int main(int argc, char **argv)
         std::uint16_t server_port = std::stoi(argv[2]);
         std::string server_ip = argv[3];
 
-        RWLock m_rw_lock;
+        State m_state;
         SPMCQueue<UUID> m_job_queue;
-        std::unordered_map<UUID, std::unique_ptr<TCPStream>> m_connection_table;
         std::vector<std::unique_ptr<Thread>> thread_pool(thread_pool_size);
         try
         {
                 for (auto it = 0u; it < thread_pool_size; ++it)
                 {
-                        thread_pool[it] = std::make_unique<ConnectionHandler>(m_rw_lock, m_job_queue, m_connection_table);
+                        thread_pool[it] = std::make_unique<ConnectionHandler>(m_state, m_job_queue);
                         thread_pool[it]->Start();
                 }
         }
@@ -47,9 +48,7 @@ int main(int argc, char **argv)
                 {
                         UUID new_connection_id;
                         auto new_connection = m_server.Accept();
-                        m_rw_lock.WriteLock();
-                        m_connection_table.emplace(new_connection_id, std::move(new_connection));
-                        m_rw_lock.WriteUnlock();
+                        m_state.InsertConnection(new_connection_id, std::move(new_connection));
                         m_job_queue.Push(new_connection_id);
                 }
                 catch (const std::exception& ex)
