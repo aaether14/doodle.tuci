@@ -33,6 +33,10 @@
         "condition_variable": "cpp",
         "ctime": "cpp",
         "ratio": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp",
+        "iomanip": "cpp",
+        "unordered_map": "cpp"
     }
 }
