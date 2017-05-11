@@ -5,6 +5,7 @@
 
 void ConnectionHandler::ProcessRequest(const UUID& connection_id, TCPStream* connection, char* message, std::size_t message_length)
 {
+        DEBUG(message_length, "\n");
         auto connections = m_state.GetAllConnections();
         for (auto& it : *connections.get())
         {

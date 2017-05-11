@@ -28,5 +28,5 @@ std::unique_ptr<std::vector<std::pair<UUID, TCPStream*>>> State::GetAllConnectio
         m_rw_lock.ReadLock();
         for (auto& it : m_connection_table) result.push_back({it.first, it.second.get()});
         m_rw_lock.ReadUnlock();
-        return std::make_unique<std::vector<std::pair<UUID, TCPStream*>>>(result);
+        return std::make_unique<std::vector<std::pair<UUID, TCPStream*>>>(std::move(result));
 }
