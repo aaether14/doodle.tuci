@@ -4,7 +4,7 @@
 
 std::unique_ptr<std::vector<char>> FileManager::GetFilesInDirectory(const std::string& directory_name)
 {
-        std::vector<char> result;
+        std::vector<char> result; result.resize(4);
         DIR *directory;
         struct dirent *directory_entry;
         directory = opendir(directory_name.c_str());
@@ -43,7 +43,7 @@ void FileManager::BeginReading(const std::string& filename)
 void FileManager::EndReading()
 {
         if (m_in_stream.is_open())
-        m_in_stream.close();
+                m_in_stream.close();
         m_rw_lock.ReadUnlock();
 }
 

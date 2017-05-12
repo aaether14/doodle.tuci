@@ -30,3 +30,18 @@ std::unique_ptr<std::vector<std::pair<UUID, TCPStream*>>> State::GetAllConnectio
         m_rw_lock.ReadUnlock();
         return std::make_unique<std::vector<std::pair<UUID, TCPStream*>>>(std::move(result));
 }
+
+void State::SetWorkspace(const std::string& workspace)
+{
+        m_rw_lock.WriteLock();
+        m_workspace = workspace;
+        m_rw_lock.WriteUnlock();
+}
+
+const std::string State::GetWorkspace() const
+{
+        m_rw_lock.ReadLock();
+        const std::string result = m_workspace;
+        m_rw_lock.ReadUnlock();
+        return result;
+}
