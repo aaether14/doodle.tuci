@@ -8,7 +8,7 @@ class ConnectionHandler : public Thread
 {
         State& m_state;
         SPMCQueue<UUID>& m_job_queue;
-        void ProcessRequest(const UUID& connection_id, TCPStream* connection, char* message, std::size_t message_length);
+        bool ProcessRequest(const UUID& connection_id, TCPStream* connection, char* header);
         void OnConnect(TCPStream* connection);
         void OnSelectWorkspace(char* message, std::size_t message_length);
         void OnNewShape(char* message, std::size_t message_length, const UUID& connection_id);

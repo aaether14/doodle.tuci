@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-enum class Request : uint32_t
+enum class Request : uint16_t
 {
     E_HELLO,
     E_ON_CONNECT,
