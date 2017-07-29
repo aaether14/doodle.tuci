@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <string>
 
+
 void Thread::Clean()
 {
         if (m_is_running && !m_is_detached)

@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 
         State m_state;
         SPMCQueue<UUID> m_job_queue;
+
         std::vector<std::unique_ptr<Thread>> thread_pool(thread_pool_size);
         try
         {

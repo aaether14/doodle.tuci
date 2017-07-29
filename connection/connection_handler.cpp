@@ -66,18 +66,18 @@ ConnectionHandler::ConnectionHandler(State& state, SPMCQueue<UUID>& job_queue) :
 
 void* ConnectionHandler::Run()
  {   
-                while (true)
-                {
-                        const auto current_connection_id = m_job_queue.Pop();
-                        DEBUG(current_connection_id, " has connected!\n");
-                        auto current_connection = m_state.GetConnection(current_connection_id);
-                        char input_header[4];
-                        ssize_t input_header_length;
-                        while ((input_header_length = current_connection->Receive(input_header, 4)) > 0)
-                                if (!ProcessRequest(current_connection_id, current_connection, input_header))
-                                        break;
-                        DEBUG(current_connection_id, " has disconnected!\n");
-                        m_state.RemoveConnection(current_connection_id);
-                }
-                return nullptr;
+        while (true)
+        {
+                const auto current_connection_id = m_job_queue.Pop();
+                DEBUG(current_connection_id, " has connected!\n");
+                auto current_connection = m_state.GetConnection(current_connection_id);
+                char input_header[4];
+                ssize_t input_header_length;
+                while ((input_header_length = current_connection->Receive(input_header, 4)) > 0)
+                        if (!ProcessRequest(current_connection_id, current_connection, input_header))
+                                break;
+                DEBUG(current_connection_id, " has disconnected!\n");
+                m_state.RemoveConnection(current_connection_id);
+        }
+        return nullptr;
  }

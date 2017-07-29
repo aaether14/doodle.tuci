@@ -37,6 +37,8 @@
         "fstream": "cpp",
         "sstream": "cpp",
         "iomanip": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "cstdarg": "cpp"
     }
 }

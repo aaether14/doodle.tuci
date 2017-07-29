@@ -7,6 +7,7 @@ std::unique_ptr<std::vector<char>> FileManager::GetFilesInDirectory(const std::s
         std::vector<char> result; result.resize(4);
         DIR *directory;
         struct dirent *directory_entry;
+        
         directory = opendir(directory_name.c_str());
         if (directory)
         {
